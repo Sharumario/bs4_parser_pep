@@ -19,26 +19,27 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 Парсер запускается из папки ./src/:
+
 Команды парсера:
 ```
-python main.py whats-new
-``` — нововведения Python;
+python main.py whats-new — нововведения Python;
 ```
-python main.py latest-versions
-``` — информация о последних версиях;
 ```
-python main.py download
-``` — загрузка документации;
+python main.py latest-versions — информация о последних версиях;
 ```
-python main.py pep
-``` — парсинг информации по каждому PEP
+```
+python main.py download — загрузка документации;
+```
+```
+python main.py pep — парсинг информации по каждому PEP
+```
 Опции:
 ```
-python main.py -h
-``` — Вспомогательная информация
+python main.py -h — Вспомогательная информация
 ```
-python main.py -c
-``` — Очистка кеша
+```
+python main.py -c — Очистка кеша
+```
 ```
 python main.py -o {pretty,file}
 ``` — 
