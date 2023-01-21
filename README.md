@@ -41,9 +41,9 @@ python main.py -h — Вспомогательная информация
 python main.py -c — Очистка кеша
 ```
 ```
-python main.py -o {pretty,file}
-``` — 
+python main.py -o {pretty,file} — 
    Дополнительные способы вывода данных(pretty(таблица), file(csv файл))
+```
 
 ## Над проектом работали:
 [Шайхнисламов Марат](https://github.com/Sharumario/) при поддержке ЯндексПрактикума
