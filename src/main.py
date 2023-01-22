@@ -21,23 +21,26 @@ from utils import find_tag, get_soup
 
 
 def whats_new(session):
-    sections_by_python = get_soup(session, WHATS_NEW_URL).select(
-        '#what-s-new-in-python div.toctree-wrapper li.toctree-l1'
-    )
     result = [WHATS_NEW]
-    for section in tqdm(sections_by_python):
+    logs = []
+    for section in tqdm(
+        get_soup(session, WHATS_NEW_URL).select(
+            '#what-s-new-in-python div.toctree-wrapper li.toctree-l1'
+            )):
         version_link = urljoin(WHATS_NEW_URL, section.find('a')['href'])
         try:
             soup = get_soup(session, version_link)
             result.append(
                 [
-                 version_link,
-                 find_tag(soup, 'h1').text,
-                 find_tag(soup, 'dl').text.replace('\n', ' ')
+                    version_link,
+                    find_tag(soup, 'h1').text,
+                    find_tag(soup, 'dl').text.replace('\n', ' ')
                 ]
             )
-        except Exception as error:
-            logging.exception(error)
+        except (ConnectionError, ParserFindTagException) as error:
+            logs.append(ERROR_MESSAGE.format(error=error))
+    for log in logs:
+        logging.info(log)
     return result
 
 
@@ -66,10 +69,12 @@ def latest_versions(session):
 
 
 def download(session):
-    pdf_a4_tag = get_soup(session, DOWNLOADS_URL).select_one(
-        'table.docutils td > a[href$="pdf-a4.zip"]'
+    archive_url = urljoin(
+        DOWNLOADS_URL,
+        get_soup(session, DOWNLOADS_URL).select_one(
+            'table.docutils td > a[href$="pdf-a4.zip"]'
+        )['href']
     )
-    archive_url = urljoin(DOWNLOADS_URL, pdf_a4_tag['href'])
     filename = archive_url.split('/')[-1]
     download_dir = BASE_DIR / DOWNLOAD_DIR
     download_dir.mkdir(exist_ok=True)
@@ -81,29 +86,32 @@ def download(session):
 
 
 def pep(session):
-    soup = get_soup(session, MAIN_PEP_URL)
-    trs = soup.select('#numerical-index tbody tr')
     count_status = defaultdict(int)
-    for tr in tqdm(trs):
+    logs = []
+    for tr in tqdm(
+        get_soup(session, MAIN_PEP_URL).select('#numerical-index tbody tr')[:5]
+    ):
         url_pep = urljoin(MAIN_PEP_URL, find_tag(tr, 'a')['href'])
         pep_statuslist = EXPECTED_STATUS.get(tr.td.text[1:])
         if not pep_statuslist:
             pep_statuslist = tr.td.text[1:]
-            logging.info(UNKNOWN_KEY_STATUS_MESSAGE.format(
+            logs.append(UNKNOWN_KEY_STATUS_MESSAGE.format(
                 url_pep=url_pep, pep_statuslist=pep_statuslist
             ))
         try:
             status = (get_soup(session, url_pep).
                       find(string='Status').find_next('dd').text)
             if status not in pep_statuslist:
-                logging.info(UNEXPECTED_STATUS_MESSAGE.format(
+                logs.append(UNEXPECTED_STATUS_MESSAGE.format(
                         url_pep=url_pep,
                         status=status,
                         pep_statuslist=pep_statuslist
                 ))
             count_status[status] += 1
-        except Exception as error:
-            logging.exception(error)
+        except ConnectionError as error:
+            logs.append(ERROR_MESSAGE.format(error=error))
+    for log in logs:
+        logging.info(log)
     return [RETURN_PEP, *count_status.items(),
             ('Total', sum(count_status.values()))]
 
