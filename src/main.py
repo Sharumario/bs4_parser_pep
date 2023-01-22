@@ -89,7 +89,7 @@ def pep(session):
     count_status = defaultdict(int)
     logs = []
     for tr in tqdm(
-        get_soup(session, MAIN_PEP_URL).select('#numerical-index tbody tr')[:5]
+        get_soup(session, MAIN_PEP_URL).select('#numerical-index tbody tr')
     ):
         url_pep = urljoin(MAIN_PEP_URL, find_tag(tr, 'a')['href'])
         pep_statuslist = EXPECTED_STATUS.get(tr.td.text[1:])
